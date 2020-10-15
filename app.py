@@ -7,6 +7,7 @@ import json, requests, base64
 from io import StringIO
 from datetime import date, datetime
 import six
+from pathlib import Path
 
 #Flask
 from flask import Flask, request, render_template, url_for
@@ -26,37 +27,29 @@ CORS(app)
 @app.route('/graficos', methods=['GET'])
 def getting_body_api_ged():
 
-    #Pegando parâmetros
-    type_view = request.args.get('tipo')
-    token = request.args.get('token')
-    url_paramenter = request.args.get('url')
-
-    body_paramenter = request.args.get('body')
-    body_paramenter = json.loads(body_paramenter)
-
     ## MINHAS REQUISIÇÕES PARA TESTAR
     # body = { 
     #             "listaIdArea": [
     #                     "9a41c6e7-32c1-4d80-b6c0-21a07e971ada",
     #                     "2b01d741-822e-45a4-94a9-65360ac8dca1",
-    #                     #"82f2cea4-99bc-46ad-9a8d-b9c837a08b79",
+    #                     "82f2cea4-99bc-46ad-9a8d-b9c837a08b79",
     #                     "f8779fc0-afae-4ce9-9c9e-a7779496d82e",
     #                     "3c92bef0-7a67-4779-97f3-a6ab7a1e3bef",
-    #                     #"f4374f19-f0ad-461a-af25-209ccb105384",
+    #                     "f4374f19-f0ad-461a-af25-209ccb105384",
     #                     "ed74e020-f7c3-447c-ae96-79c3d2cb711c",
     #                     "f60b3c7e-788f-4c3b-8622-1d11a9521262",
-    #                     #"6ce63d3f-7de6-47ed-836d-a81a02e665e3",
+    #                     "6ce63d3f-7de6-47ed-836d-a81a02e665e3",
     #                     "03e2adf7-01d5-46fd-aea4-6971582ef0b7",
     #                     "4c031f4d-9f27-4a3c-8d91-17995abb99c6",
-    #                     #"dd752d9f-d936-43a0-82dc-b8013d3eff80",
+    #                     "dd752d9f-d936-43a0-82dc-b8013d3eff80",
     #                     "0f7049b8-32bb-41f8-8048-4e454505519d",
     #                     "e8015d08-e15a-4483-b163-59d942511360",
     #                     "04e6f780-de8d-47a0-8fa8-272b3b8f380d",
-    #                     #"720dfaee-6ba4-4a77-aa40-11327acdf36c",
+    #                     "720dfaee-6ba4-4a77-aa40-11327acdf36c",
     #                     "991b9666-c292-46a6-8fb0-6f0b8e451b65",
     #                     "e582aed5-ae85-45ca-8300-8f12dd15a1ae",
     #                     "21b64383-5430-40a9-9627-0095f0a34144",
-    #                     #"7577a987-1370-4d0a-8be2-47d2cae8d6d2",
+    #                     "7577a987-1370-4d0a-8be2-47d2cae8d6d2",
     #                     "38bf37c8-d099-42e0-b9bc-3a6e95a92528",
     #                     "994ea197-fb92-4d69-a4ca-a238483a750f",
     #                     "c997893b-251d-4622-afc2-4a1c5f3ddea3"
@@ -71,10 +64,20 @@ def getting_body_api_ged():
     #            'content-type' : 'application/json'
     #         }
 
-    #url = "http://127.0.0.1:8080/speed/rest/registro/pesquisa"
-
+    # url = "http://127.0.0.1:8080/speed/rest/registro/pesquisa"
 
     ## USAR PARA A APLICAÇÃO DO CRIXIN
+
+    #Pegando parâmetros
+    type_view = request.args.get('tipo')
+    token = request.args.get('token')
+    url_paramenter = request.args.get('url')
+
+    body_paramenter = request.args.get('body')
+    body_paramenter = json.loads(body_paramenter)
+
+
+    
     headers = {'Cookie' : 'CXSSID=' + token,
                'content-type' : 'application/json'
               }
@@ -137,10 +140,12 @@ def vencidas_vigentes_por_orgao(dataframe):
     plot.set_xlabels('Quantidade')
     plot.set_ylabels('Órgão')
 
-    plot.savefig('static/my_plot.png')
+    img_location = Path(__file__).absolute().parent
+    file_location = img_location / 'static/my_plot.png' 
+    plot.savefig(file_location)
 
     #Base64 na imagem pra enviar
-    with open("static/my_plot.png", "rb") as image_file:
+    with open(file_location, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read())
 
     json_dumped = json.dumps({'base64' : encoded_string.decode('utf-8')})
@@ -181,10 +186,13 @@ def vencerao_3_meses(dataframe):
     
     df_to_table = render_mpl_table(dataframe_vencera, header_columns=0, col_width=3.0)
     fig = df_to_table.get_figure()
-    fig.savefig('static/dataframe_vencera.png')
+
+    img_location = Path(__file__).absolute().parent
+    file_location = img_location / 'static/dataframe_vencera.png' 
+    fig.savefig(file_location)
     
     #Base64 na imagem pra enviar
-    with open("static/dataframe_vencera.png", "rb") as image_file:
+    with open(file_location, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read())
 
     json_dumped = json.dumps({'base64' : encoded_string.decode('utf-8')})
