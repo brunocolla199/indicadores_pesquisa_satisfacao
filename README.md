@@ -29,4 +29,4 @@ Esta aplicação será rodada como serviço no servidor da DP World
 >                                 Restart=on-failure
 >                                 RuntimeDirectoryMode=755
 8. Alteramos a permissão da aplicação: `chown <usuario> app.py` e `chmod +x app.py`
-9. Para concluir, executamos `sudo service <nome da aplicação> start` para startar e `sudo service <nome da aplicação> status` para verificar o status.
+9. Para concluir, executamos `sudo systemctl <nome da aplicação> start` para startar e `sudo systemctl <nome da aplicação> status` para verificar o status.
