@@ -61,7 +61,7 @@ def getting_body_api_ged():
     #         }  
 
     # headers = {'Cookie' : "CXSSID=Mnw6fGFkbXw6fC0xfDp8MTg0ZmE1OTdmMjk1YmUyY2RmODIwY2NkZTZkN2E1YmZ8Onw3NWZiZmI5MmMxYzI2ZDdiM2FmM2QzNzAwOWY2MzY4NDhkNWRiM2E2",
-    #            'content-type' : 'application/json'
+    #         'content-type' : 'application/json'
     #         }
 
     # url = "http://127.0.0.1:8080/speed/rest/registro/pesquisa"
@@ -76,8 +76,6 @@ def getting_body_api_ged():
     body_paramenter = request.args.get('body')
     body_paramenter = json.loads(body_paramenter)
 
-
-    
     headers = {'Cookie' : 'CXSSID=' + token,
                'content-type' : 'application/json'
               }
@@ -97,6 +95,7 @@ def get_data_ged(body, headers, url, type_view):
 def preparing_dataframe(data, type_view, headers):
     data = json.loads(data.decode('utf-8'))
     dataframe = pd.DataFrame(columns=['IdArea','Processo', 'Descrição', 'Status', 'Área', 'Abrangência', 'Data de emissão', 'Data de validade', 'Data de aviso', 'Observação', 'Cópia', 'Dias antecedência'])
+    #print(data)
     for i in data['listaRegistro']:
         data = json.dumps(i['listaIndice'])
         dados = pd.read_json(StringIO(data))
@@ -140,6 +139,7 @@ def vencidas_vigentes_por_orgao(dataframe):
     plot.set_xlabels('Quantidade')
     plot.set_ylabels('Órgão')
 
+    ##VERIFICAR, POIS NO SERVIDOR DA DP DEU PAU!
     img_location = Path(__file__).absolute().parent
     file_location = img_location / 'static/my_plot.png' 
     plot.savefig(file_location)
@@ -187,6 +187,7 @@ def vencerao_3_meses(dataframe):
     df_to_table = render_mpl_table(dataframe_vencera, header_columns=0, col_width=3.0)
     fig = df_to_table.get_figure()
 
+    ##VERIFICAR, POIS NO SERVIDOR DA DP DEU PAU!
     img_location = Path(__file__).absolute().parent
     file_location = img_location / 'static/dataframe_vencera.png' 
     fig.savefig(file_location)
@@ -233,5 +234,5 @@ def get_area_name(area,headers):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0')
 
