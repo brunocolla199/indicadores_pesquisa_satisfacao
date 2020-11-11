@@ -68,56 +68,56 @@ def getting_body_api_ged():
 
     ## USAR PARA A APLICAÇÃO DO CRIXIN
 
-    #Pegando parâmetros
-    type_view = request.args.get('tipo')
-    token = request.args.get('token')
-    url_paramenter = request.args.get('url')
+    params = {
+        'url' : '{}/registro/pesquisa'.format(request.args.get('url')),
+        'type_view' : request.args.get('tipo'),
+        'token' : request.args.get('token'),
+        'body' : json.loads(request.args.get('body'))
+    }
 
-    body_paramenter = request.args.get('body')
-    body_paramenter = json.loads(body_paramenter)
-
-    headers = {'Cookie' : 'CXSSID=' + token,
+    headers = {'Cookie' : 'CXSSID=' + params['token'],
                'content-type' : 'application/json'
               }
 
-    url = url_paramenter + '/registro/pesquisa'
-    body = body_paramenter
 
-    return get_data_ged(body, headers, url, type_view)
+    return get_data_ged(params, headers)
 
 #Buscar dados do GED
-def get_data_ged(body, headers, url, type_view):
-    body = json.dumps(body, ensure_ascii=False)
-    response_get = requests.post(url, headers=headers, data=body)
-    return preparing_dataframe(response_get.content, type_view, headers)
+def get_data_ged(params, headers):
+
+    body = json.dumps(params['body'], ensure_ascii=False)
+    response_get = requests.post(params['url'], headers=headers, data=body)
+    return preparing_dataframe(response_get.content, params['type_view'], headers)
 
 #Crio um dataframe baseado nos dados recebidos
 def preparing_dataframe(data, type_view, headers):
+    
     data = json.loads(data.decode('utf-8'))
     dataframe = pd.DataFrame(columns=['IdArea','Processo', 'Descrição', 'Status', 'Área', 'Abrangência', 'Data de emissão', 'Data de validade', 'Data de aviso', 'Observação', 'Cópia', 'Dias antecedência'])
-    #print(data)
     for i in data['listaRegistro']:
-        data = json.dumps(i['listaIndice'])
-        dados = pd.read_json(StringIO(data))
+        chave_valor = {}
+        data = json.dumps(i)
+        for indice in i['listaIndice']:
+            chave_valor[indice['identificador'].strip().upper()] = indice['valor']
         dataframe = dataframe.append({
-            'IdArea' : get_area_name(i['idArea'], headers),
-            'Processo' : dados['valor'][3],
-            'Descrição' : dados['valor'][4],
-            'Status' : dados['valor'][5],
-            'Área' : dados['valor'][6],
-            'Abrangência' : dados['valor'][7],
-            'Data de emissão' : dados['valor'][8],
-            'Data de validade' : dados['valor'][9],
-            'Data de aviso' : dados['valor'][10],
-            'Observação' : dados['valor'][11],
-            'Cópia' : dados['valor'][12],
-            'Dias antecedência' : dados['valor'][13]                    
+            'IdArea'            : get_area_name(i['idArea'], headers),
+            'Processo'          : chave_valor['PROCESSO'],
+            'Descrição'         : chave_valor['DESCRICAO'],
+            'Status'            : chave_valor['STATUS'],
+            'Área'              : chave_valor['RESPONSÁVEL'],
+            'Abrangência'       : chave_valor['ABRANGENCIA'],
+            'Data de emissão'   : chave_valor['EMISSAO'],
+            'Data de validade'  : chave_valor['VALIDADE'],
+            'Data de aviso'     : chave_valor['DATA_VALIDADA'],
+            'Observação'        : chave_valor['OBSERVACAO'],
+            'Cópia'             : chave_valor['COPIA CONTROLADA'],
+            'Dias antecedência' : chave_valor['DIAS_ANTECEDENCIA']                    
         }, ignore_index=True)
-
     return roteando_para_graficos(dataframe, type_view)
    
 #Licenças vigentes e vencidas por órgão interveniente
 def roteando_para_graficos(data, type_view):
+
     if type_view == 'vencidas':
         return vencidas_vigentes_por_orgao(data)
     elif type_view == 'vencerao':
@@ -153,6 +153,7 @@ def vencidas_vigentes_por_orgao(dataframe):
     return json_dumped
 
 def vencerao_3_meses(dataframe):
+    
     #BUSCAR O DIA DE HOJE FORMATADO
     today = date.today().strftime("%d/%m/%Y")
     today = pd.to_datetime(today, format="%d/%m/%Y")
@@ -236,3 +237,4 @@ def get_area_name(area,headers):
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
 
+ 
